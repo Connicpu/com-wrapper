@@ -16,13 +16,11 @@ pub fn expand_com_wrapper(input: &DeriveInput) -> Result<TokenStream, String> {
 
     let inherent_impl = inherent_impl(&input.ident, &member, itype, ctype);
     let wrapper_impl = wrapper_impl(&input.ident, itype, ctype);
-    let dbg_impl = dbg_impl(&input.ident);
     let meta_impl = meta_impl(&input.ident, &attrinfo);
 
     Ok(quote! {
         #inherent_impl
         #wrapper_impl
-        #dbg_impl
         #meta_impl
     })
 }
@@ -117,10 +115,16 @@ fn meta_impl(wrap: &Ident, meta: &AttrInfo) -> TokenStream {
     } else {
         quote!{}
     };
+    let dbg_impl = if meta.debug {
+        dbg_impl(wrap)
+    } else {
+        quote!{}
+    };
 
     quote! {
         #send_impl
         #sync_impl
+        #dbg_impl
     }
 }
 
@@ -202,6 +206,7 @@ fn extract_comptr_ty(ty: &Type) -> Result<&Type, String> {
 struct AttrInfo {
     send: bool,
     sync: bool,
+    debug: bool,
 }
 
 fn parse_attr(attrs: &[Attribute]) -> Result<AttrInfo, String> {
@@ -219,6 +224,7 @@ fn parse_attr(attrs: &[Attribute]) -> Result<AttrInfo, String> {
 
     let mut send = false;
     let mut sync = false;
+    let mut debug = false;
     for attr in attrs.iter() {
         let ident = match attr {
             NestedMeta::Meta(Meta::Word(ident)) => ident,
@@ -235,12 +241,17 @@ fn parse_attr(attrs: &[Attribute]) -> Result<AttrInfo, String> {
                 return Err("Duplicate parameters to the `com` attribute".into());
             }
             sync = true;
+        } else if ident == "debug" {
+            if debug {
+                return Err("Duplicate parameters to the `com` attribute".into());
+            }
+            debug = true;
         } else {
             return Err("Invalid parameters to the `com` attribute".into());
         }
     }
 
-    Ok(AttrInfo { send, sync })
+    Ok(AttrInfo { send, sync, debug })
 }
 
 fn is_com_attr(attr: &&Attribute) -> bool {

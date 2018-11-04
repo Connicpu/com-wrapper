@@ -10,7 +10,7 @@ use winapi::um::unknwnbase::IUnknown;
 use wio::com::ComPtr;
 
 #[derive(ComWrapper)]
-#[com(send, sync)]
+#[com(send, sync, debug)]
 #[repr(transparent)]
 pub struct UnknownThing {
     ptr: ComPtr<IUnknown>,
@@ -26,4 +26,8 @@ fn id_test() {
     let out = unsafe { UnknownThing::from_raw(fake_ptr).into_raw() };
     assert_eq!(out, fake_ptr);
     assert_eq!(roundtrip::<UnknownThing>(fake_ptr), fake_ptr);
+
+    let fake = unsafe { UnknownThing::from_raw(fake_ptr) };
+    println!("{:?}", fake);
+    assert_eq!(unsafe { fake.into_raw() }, fake_ptr);
 }
