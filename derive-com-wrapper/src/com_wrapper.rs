@@ -14,74 +14,39 @@ pub fn expand_com_wrapper(input: &DeriveInput) -> Result<TokenStream, String> {
     let (member, itype, ctype) = get_comptr_member(fields)?;
     let attrinfo = parse_attr(&input.attrs)?;
 
-    let inherent_impl = inherent_impl(&input.ident, &member, itype, ctype);
-    let wrapper_impl = wrapper_impl(&input.ident, itype, ctype);
+    let wrapper_impl = wrapper_impl(&input.ident, &member, itype, ctype);
     let meta_impl = meta_impl(&input.ident, &attrinfo);
 
     Ok(quote! {
-        #inherent_impl
         #wrapper_impl
         #meta_impl
     })
 }
 
-fn inherent_impl(wrap: &Ident, member: &Member, itype: &Type, ctype: &Type) -> TokenStream {
+fn wrapper_impl(wrap: &Ident, member: &Member, itype: &Type, ctype: &Type) -> TokenStream {
     let ptr_wrap = create_wrapping(wrap, member);
-    quote! {
-        impl #wrap {
-            #[inline]
-            /// Gets a raw pointer to the interface. Does not increment the reference count
-            pub unsafe fn get_raw(&self) -> *mut #itype {
-                ComPtr::as_raw(&self.#member)
-            }
-            #[inline]
-            /// Consumes the wrapper without affecting the reference count
-            pub unsafe fn from_raw(ptr: *mut #itype) -> Self {
-                Self::from_ptr(ComPtr::from_raw(ptr))
-            }
-            #[inline]
-            /// Creates a wrapper from the raw pointer. Takes ownership of the pointer for
-            /// reference counting purposes.
-            pub unsafe fn into_raw(self) -> *mut #itype {
-                ComPtr::into_raw(Self::into_ptr(self))
-            }
-            #[inline]
-            /// Creates a wrapper taking ownership of a ComPtr.
-            pub unsafe fn from_ptr(ptr: #ctype) -> Self {
-                #ptr_wrap
-            }
-            #[inline]
-            /// Unwraps the wrapper into a ComPtr.
-            pub unsafe fn into_ptr(self) -> #ctype {
-                self.#member
-            }
-        }
-    }
-}
-
-fn wrapper_impl(wrap: &Ident, itype: &Type, ctype: &Type) -> TokenStream {
     quote! {
         impl ::com_wrapper::ComWrapper for #wrap {
             type Interface = #itype;
             #[inline]
             unsafe fn get_raw(&self) -> *mut #itype {
-                Self::get_raw(self)
+                ComPtr::as_raw(&self.#member)
             }
             #[inline]
             unsafe fn from_raw(ptr: *mut #itype) -> Self {
-                Self::from_raw(ptr)
+                <Self as ::com_wrapper::ComWrapper>::from_ptr(ComPtr::from_raw(ptr))
             }
             #[inline]
             unsafe fn into_raw(self) -> *mut #itype {
-                Self::into_raw(self)
+                ComPtr::into_raw(Self::into_ptr(self))
             }
             #[inline]
             unsafe fn from_ptr(ptr: #ctype) -> Self {
-                Self::from_ptr(ptr)
+                #ptr_wrap
             }
             #[inline]
             unsafe fn into_ptr(self) -> #ctype {
-                Self::into_ptr(self)
+                self.#member
             }
         }
     }
