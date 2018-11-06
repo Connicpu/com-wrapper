@@ -1,6 +1,6 @@
 [package]
 name = "derive-com-wrapper"
-version = "0.1.0-alpha2"
+version = "0.1.0-alpha3"
 authors = ["Connie Hilarides <conni_h@outlook.com>"]
 repository = "https://github.com/Connicpu/com-wrapper"
 license = "MIT"
