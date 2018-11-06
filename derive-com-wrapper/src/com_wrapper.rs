@@ -38,7 +38,7 @@ fn wrapper_impl(wrap: &Ident, member: &Member, itype: &Type, ctype: &Type) -> To
             }
             #[inline]
             unsafe fn into_raw(self) -> *mut #itype {
-                ComPtr::into_raw(Self::into_ptr(self))
+                ComPtr::into_raw(<Self as ::com_wrapper::ComWrapper>::into_ptr(self))
             }
             #[inline]
             unsafe fn from_ptr(ptr: #ctype) -> Self {
@@ -58,7 +58,7 @@ fn dbg_impl(wrap: &Ident) -> TokenStream {
         impl ::std::fmt::Debug for #wrap {
             fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 fmt.debug_tuple(#wrap_str)
-                    .field(&unsafe { Self::get_raw(self) })
+                    .field(&unsafe { <Self as ::com_wrapper::ComWrapper>::get_raw(self) })
                     .finish()
             }
         }
