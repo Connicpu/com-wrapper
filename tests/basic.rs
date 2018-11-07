@@ -1,3 +1,5 @@
+#![cfg(windows)]
+
 #[macro_use]
 extern crate derive_com_wrapper;
 extern crate com_wrapper;

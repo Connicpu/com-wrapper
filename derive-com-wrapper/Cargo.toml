@@ -17,3 +17,6 @@ proc-macro = true
 syn = { version = "0.15.18", features = ["derive", "extra-traits"] }
 quote = "0.6.8"
 proc-macro2 = "0.4.20"
+
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"
