@@ -1,8 +1,11 @@
 extern crate winapi;
 extern crate wio;
+extern crate derive_com_wrapper;
 
 use winapi::Interface;
 use wio::com::ComPtr;
+
+pub use derive_com_wrapper::ComWrapper;
 
 pub trait ComWrapper {
     /// The raw interface type from `winapi`
